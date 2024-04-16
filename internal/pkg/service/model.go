@@ -1,6 +1,6 @@
 package service
 
-type product struct {
+type Order struct {
 	ID       string  `json:"id"`
 	Name     string  `json:"name"`
 	Quantity int     `json:"quantity"`
