@@ -7,33 +7,23 @@ import (
 )
 
 type DB struct {
-	conn *sqlx.DB
+	Conn *sqlx.DB
 }
 
 //TODO: ver referencia
 
-func (db DB) OpenConnection(host, port, user, pswd, dbname string) error {
-	connectionString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s", host, port, user, pswd, dbname)
+func OpenConnection(host, user, pswd, dbname string, port int) (*sqlx.DB, error) {
+	connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, pswd, dbname)
 
 	conn, err := sqlx.Open("postgres", connectionString)
 	if err != nil {
-		return err
-	}
-	db.conn = conn
-
-	err = db.conn.Ping()
-	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return nil
+	return conn, nil
 }
 
-func (db DB) CloseConnection() error {
-	err := db.conn.Close()
-	if err != nil {
-		return err
-	}
-
-	return nil
+func CloseConnection(db *sqlx.DB) {
+	db.Close()
 }

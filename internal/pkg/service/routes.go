@@ -1,7 +1,9 @@
 package service
 
 import (
+	"FullCycleCleanArchitecture/internal/pkg/repository"
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 	"log"
 	"net/http"
 )
@@ -21,13 +23,33 @@ func setOrder(c *gin.Context) {}
 
 func getAllOrders(c *gin.Context) {
 
-	var err error
+	var orders Order
+
+	db, err := repository.OpenConnection("localhost", "postgres", "password", "postgres", 5432)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"err": err,
 		})
 	}
 
-	c.IndentedJSON(http.StatusOK, "mensagem ok")
+	defer repository.CloseConnection(db)
+
+	rows, err := db.Query("Select * from orders")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"err": err,
+		})
+	}
+
+	for rows.Next() {
+		err = rows.Scan(&orders.ID, &orders.Products, &orders.Total)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"err": err,
+			})
+		}
+	}
+
+	c.IndentedJSON(http.StatusOK, orders)
 
 }
