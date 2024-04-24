@@ -22,8 +22,8 @@ func rotas(s *gin.Engine) {
 func setOrder(c *gin.Context) {}
 
 func getAllOrders(c *gin.Context) {
-
-	var orders Order
+	var order Order
+	var orders []Order
 
 	db, err := repository.OpenConnection("localhost", "postgres", "password", "postgres", 5432)
 	if err != nil {
@@ -34,7 +34,7 @@ func getAllOrders(c *gin.Context) {
 
 	defer repository.CloseConnection(db)
 
-	rows, err := db.Query("Select * from orders")
+	rows, err := db.Queryx("Select * from orders")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"err": err,
@@ -42,12 +42,13 @@ func getAllOrders(c *gin.Context) {
 	}
 
 	for rows.Next() {
-		err = rows.Scan(&orders.ID, &orders.Products, &orders.Total)
+		err = rows.StructScan(&order)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"err": err,
 			})
 		}
+		orders = append(orders, order)
 	}
 
 	c.IndentedJSON(http.StatusOK, orders)
